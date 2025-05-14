@@ -1,6 +1,44 @@
 services:
-  # gateway still required
   # application services
+  btms-gateway:
+    image: defradigital/btms-gateway:${BTMS_GATEWAY:-latest}
+    pull_policy: always
+    depends_on:
+      localstack:
+        condition: service_healthy
+    env_file:
+      - 'compose/aws.env'
+      - 'compose/dotnet-service.env'
+    environment:
+      Routing__AutomatedHealthCheckDisabled: false
+      HealthCheck__AutomatedHealthCheckDisabled: false
+      Routing__Destinations__AlvsDecisionComparer__Link: http://decision-comparer:8080
+      Routing__Destinations__BtmsDecisionComparer__Link: http://decision-comparer:8080
+      DataApi__BaseAddress: http://data-api:8080
+      DataApi__Password: gateway-pwd
+      DecisionComparerApi__BaseAddress: http://decision-comparer:8080
+      DecisionComparerApi__Password: gateway-pwd
+      # alvs decision routing to comparer
+      Routing__NamedRoutes__ALVSDecisionNotificationToCds__LegacyLinkName: None
+      Routing__NamedRoutes__ALVSDecisionNotificationToCds__BtmsLinkName: DecisionComparer
+      Routing__NamedRoutes__ALVSDecisionNotificationToCds__RouteTo: Btms
+      # clearance request write to topic
+      Routing__NamedRoutes__CDSClearanceRequestToAlvs__LegacyLinkName: None
+      Routing__NamedRoutes__CDSClearanceRequestToAlvs__BtmsLinkName: InboundCustomsDeclarationReceivedTopic
+      Routing__NamedRoutes__CDSClearanceRequestToAlvs__RouteTo: Btms
+      # finalisation write to topic
+      Routing__NamedRoutes__CDSFinalisationNotificationToAlvs__LegacyLinkName: None
+      Routing__NamedRoutes__CDSFinalisationNotificationToAlvs__BtmsLinkName: InboundCustomsDeclarationReceivedTopic
+      Routing__NamedRoutes__CDSFinalisationNotificationToAlvs__RouteTo: Btms
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
   data-api:
     image: defradigital/trade-imports-data-api:${TRADE_IMPORTS_DATA_API:-latest}
     pull_policy: always
@@ -17,6 +55,7 @@ services:
       Acl__Clients__Developer__Secret: developer-pwd
       Acl__Clients__TradeImportsProcessor__Secret: processor-pwd
       Acl__Clients__TradeImportsDecisionDeriver__Secret: deriver-pwd
+      Acl__Clients__BtmsGateway__Secret: gateway-pwd
     ports:
       - "8081:8080"
     healthcheck:
@@ -86,6 +125,7 @@ services:
     environment:
       Mongo__DatabaseUri: mongodb://mongodb:27017/?directConnection=true
       Acl__Clients__Developer__Secret: developer-pwd
+      Acl__Clients__BtmsGateway__Secret: gateway-pwd
     ports:
       - "8084:8080"
     healthcheck:
