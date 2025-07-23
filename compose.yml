@@ -30,10 +30,6 @@ services:
       Routing__NamedRoutes__CDSFinalisationNotificationToAlvs__LegacyLinkName: None
       Routing__NamedRoutes__CDSFinalisationNotificationToAlvs__BtmsLinkName: InboundCustomsDeclarationReceivedTopic
       Routing__NamedRoutes__CDSFinalisationNotificationToAlvs__RouteTo: Btms
-      # error write to topic
-      Routing__NamedRoutes__CDSErrorNotificationToAlvs__LegacyLinkName: None
-      Routing__NamedRoutes__CDSErrorNotificationToAlvs__BtmsLinkName: InboundCustomsDeclarationReceivedTopic
-      Routing__NamedRoutes__CDSErrorNotificationToAlvs__RouteTo: Btms
     ports:
       - "8080:8080"
     healthcheck:
