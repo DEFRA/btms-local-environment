@@ -144,29 +144,6 @@ services:
       start_period: 5s
     networks: [btms]
 
-  cdp-defra-id-stub:
-    image: defradigital/cdp-defra-id-stub:${CDP_DEFRA_ID_STUB:-latest}
-    ports:
-      - "3200:3200"
-    depends_on:
-      localstack:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    env_file:
-      - compose/aws.env
-    environment:
-      PORT: 3200
-      NODE_ENV: development
-      REDIS_HOST: redis
-      USE_SINGLE_INSTANCE_CACHE: true
-      ISSUER: http://cdp-defra-id-stub.localhost:3200
-      APP_BASE_URL: http://cdp-defra-id-stub.localhost:3200
-    networks:
-      btms: 
-        aliases:
-          - cdp-defra-id-stub.localhost
-
   btms-portal-frontend:
     image: defradigital/btms-portal-frontend:${BTMS_PORTAL_FRONTEND:-latest}
     ports:
@@ -200,6 +177,29 @@ services:
       AUTH_DEFRA_ID_CLIENT_SECRET: test_value
     networks: [btms]
 
+  # application dependencies
+  cdp-defra-id-stub:
+    image: defradigital/cdp-defra-id-stub:${CDP_DEFRA_ID_STUB:-latest}
+    ports:
+      - "3200:3200"
+    depends_on:
+      localstack:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - compose/aws.env
+    environment:
+      PORT: 3200
+      NODE_ENV: development
+      REDIS_HOST: redis
+      USE_SINGLE_INSTANCE_CACHE: true
+      ISSUER: http://cdp-defra-id-stub.localhost:3200
+      APP_BASE_URL: http://cdp-defra-id-stub.localhost:3200
+    networks:
+      btms: 
+        aliases:
+          - cdp-defra-id-stub.localhost
   asb-backend:
     environment:
       SQL_WAIT_INTERVAL: 0
