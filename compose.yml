@@ -195,11 +195,9 @@ services:
       AUTH_DEFRA_ID_SERVICE_ID: d7d72b79-9c62-ee11-8df0-000d3adf7047
       AUTH_ENTRA_ID_SCOPES: openid,profile,email,offline_access
       AUTH_ENTRA_ID_CLIENT_ID: 2fb0d715-affa-4bf1-836e-44a464e3fbea
-      AUTH_ENTRA_ID_CLIENT_SECRET: bDP8Q~tzmXpEBAJ9iavbfsEcdlvlnpLMyVNvSbne
+      AUTH_ENTRA_ID_CLIENT_SECRET: xEP7L~abzXpEBAJ1yavbfdEcdlvlopLByVNvSbnf
       AUTH_DEFRA_ID_ORGANISATIONS: e852b6d3-5f5e-4b90-9932-c2e2350d1099
-      SESSION_COOKIE_PASSWORD: pq179nzbnJdFzCyNErWlboQXWQbKdi8iRcmIM7lEwGVHpB2RpXGV7VwI3N07VnP
       AUTH_DEFRA_ID_CLIENT_SECRET: test_value
-      IPAFFS_URL: http://localhost:7291
     networks: [ btms ]
 
   asb-backend:
