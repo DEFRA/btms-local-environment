@@ -161,7 +161,7 @@ services:
       LOCALSTACK_ENDPOINT: http://localhost:4566
       USE_SINGLE_INSTANCE_CACHE: true
       AUTH_DEFRA_ID_OIDC_CONFIGURATION_URL: http://cdp-defra-id-stub.localhost:3200/cdp-defra-id-stub/.well-known/openid-configuration
-      BTMS_API_BASE_URL: http://localhost
+      BTMS_API_BASE_URL: http://data-api:8080
       BTMS_API_USERNAME: Developer
       BTMS_API_PASSWORD: developer-pwd
       APP_BASE_URL: http://localhost:3000
