@@ -17,6 +17,7 @@ services:
       DataApi__BaseAddress: http://data-api:8080
       DataApi__Password: gateway-pwd
       DecisionComparerApi__BaseAddress: http://decision-comparer:8080
+      DecisionComparerApi__Username: BtmsGateway
       DecisionComparerApi__Password: gateway-pwd
       # alvs decision routing to comparer
       Routing__NamedRoutes__ALVSDecisionNotificationToCds__LegacyLinkName: None
@@ -36,7 +37,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 30
       start_period: 5s
     networks: [btms]
 
@@ -63,7 +64,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/all"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 30
       start_period: 5s
     networks: [btms]
 
@@ -89,7 +90,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/all"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 30
       start_period: 5s
     networks: [btms]
 
@@ -111,7 +112,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/all"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 30
       start_period: 5s
     networks: [btms]
 
@@ -136,7 +137,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/all"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 30
       start_period: 5s
     networks: [btms]
 
@@ -224,14 +225,14 @@ services:
       test: ["CMD", "curl", "-f", "http://asb-backend:5300/health"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 30
       start_period: 5s
     networks: [btms]
 
   sqledge:
     healthcheck:
       interval: 5s
-      retries: 10
+      retries: 30
       start_period: 5s
       test: timeout 1 bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/1433'
       timeout: 5s
@@ -261,7 +262,7 @@ services:
       test: cat /tmp/ready
       interval: 5s
       start_period: 5s
-      retries: 10
+      retries: 30
     networks: [btms]
 
   mongodb:
