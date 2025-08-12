@@ -82,12 +82,14 @@ services:
     environment:
       ServiceBus__Notifications__ConnectionString: "Endpoint=sb://asb-backend;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true"
       ServiceBus__Gmrs__ConnectionString: "Endpoint=sb://asb-backend;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true"
+      ServiceBus__Ipaffs__ConnectionString: "Endpoint=sb://asb-backend;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true"
       DataApi__BaseAddress: "http://data-api:8080"
       DataApi__Password: processor-pwd
       SERVICE_VERSION: local
       Mongo__DatabaseUri: mongodb://mongodb:27017/?directConnection=true
       RawMessageLogging__Enabled: true
       Acl__Clients__IntegrationTests__Secret: integration-tests-pwd
+      Btms__OperatingMode: 0
     ports:
       - "8082:8080"
     healthcheck:
