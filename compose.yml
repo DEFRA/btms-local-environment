@@ -93,6 +93,8 @@ services:
     ports:
       - "8082:8080"
     healthcheck:
+      # this will returned degraded as the ASB emulator does not support the management
+      # interface, therefore an exception will be seen in logs and this is expected
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/all"]
       interval: 5s
       timeout: 5s
@@ -180,6 +182,29 @@ services:
       AUTH_DEFRA_ID_CLIENT_SECRET: test_value
     networks: [btms]
 
+  reporting-api:
+    image: defradigital/trade-imports-reporting-api:${TRADE_IMPORTS_REPORTING_API:-latest}
+    pull_policy: always
+    depends_on:
+      localstack:
+        condition: service_healthy
+    env_file:
+      - 'compose/aws.env'
+      - 'compose/dotnet-service.env'
+    environment:
+      SERVICE_VERSION: local
+      Mongo__DatabaseUri: mongodb://mongodb:27017/?directConnection=true
+      Acl__Clients__IntegrationTests__Secret: integration-tests-pwd
+    ports:
+      - "8085:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/all"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+    networks: [btms]
+
   # application dependencies
   cdp-defra-id-stub:
     image: defradigital/cdp-defra-id-stub:${CDP_DEFRA_ID_STUB:-latest}
@@ -200,7 +225,7 @@ services:
       ISSUER: http://cdp-defra-id-stub.localhost:3200
       APP_BASE_URL: http://cdp-defra-id-stub.localhost:3200
     networks:
-      btms: 
+      btms:
         aliases:
           - cdp-defra-id-stub.localhost
   asb-backend:
@@ -297,7 +322,7 @@ services:
       - mongodb-data:/data
     restart: always
     networks: [btms]
-  
+
 
   redis:
     image: redis:7.2.3-alpine3.18
