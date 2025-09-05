@@ -93,6 +93,8 @@ services:
     ports:
       - "8082:8080"
     healthcheck:
+      # this will returned degraded as the ASB emulator does not support the management
+      # interface, therefore an exception will be seen in logs and this is expected
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/all"]
       interval: 5s
       timeout: 5s
