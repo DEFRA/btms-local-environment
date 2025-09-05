@@ -51,6 +51,15 @@ aws --endpoint-url=http://localhost:4566 sns subscribe \
     --protocol sqs \
     --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:trade_imports_inbound_customs_declarations_processor.fifo \
     --attributes '{"RawMessageDelivery": "true"}'
+    
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_data_upserted_processor
+    
+aws --endpoint-url=http://localhost:4566 sns subscribe \
+    --topic-arn arn:aws:sns:eu-west-2:000000000000:trade_imports_data_upserted \
+    --protocol sqs \
+    --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:trade_imports_data_upserted_processor \
+    --attributes '{"RawMessageDelivery": "true"}'
 
 # decision-deriver
 aws --endpoint-url=http://localhost:4566 sqs create-queue \
@@ -97,6 +106,7 @@ function is_ready() {
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_btms_gateway || return 1
     # processor
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_inbound_customs_declarations_processor.fifo || return 1
+    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_processor || return 1
     # decision-deriver
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_decision_deriver || return 1
     # decision-comparer
