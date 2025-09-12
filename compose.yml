@@ -43,6 +43,7 @@ services:
       Routing__NamedRoutes__CDSErrorNotificationToAlvs__RouteTo: Btms
       # Redrive ACL
       Acl__Clients__Developer__Secret: developer-pwd
+      Acl__Clients__Developer__Scopes__0: execute
     ports:
       - "8080:8080"
     healthcheck:
