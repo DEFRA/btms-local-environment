@@ -208,6 +208,7 @@ services:
       SERVICE_VERSION: local
       Mongo__DatabaseUri: mongodb://mongodb:27017/?directConnection=true
       Acl__Clients__IntegrationTests__Secret: integration-tests-pwd
+      Acl__Clients__Developer__Secret: developer-pwd
     ports:
       - "8085:8080"
     healthcheck:
