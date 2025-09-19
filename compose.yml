@@ -193,6 +193,9 @@ services:
       AUTH_ENTRA_ID_CLIENT_SECRET: xEP7L~abzXpEBAJ1yavbfdEcdlvlopLByVNvSbnf
       AUTH_DEFRA_ID_ORGANISATIONS: e852b6d3-5f5e-4b90-9932-c2e2350d1099
       AUTH_DEFRA_ID_CLIENT_SECRET: test_value
+      BTMS_REPORTING_API_BASE_URL: http://reporting-api:8080
+      BTMS_REPORTING_API_USERNAME: Developer
+      BTMS_REPORTING_API_PASSWORD: developer-pwd
     networks: [btms]
 
   reporting-api:
