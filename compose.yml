@@ -12,6 +12,7 @@ services:
     environment:
       Routing__AutomatedHealthCheckDisabled: false
       HealthCheck__AutomatedHealthCheckDisabled: false
+      Routing__Destinations__BtmsCds__Link: http://cds-simulator:8080
       Routing__Destinations__AlvsDecisionComparer__Link: http://decision-comparer:8080
       Routing__Destinations__BtmsDecisionComparer__Link: http://decision-comparer:8080
       Routing__Destinations__BtmsOutboundErrors__Link: http://decision-comparer:8080
@@ -340,13 +341,33 @@ services:
     restart: always
     networks: [btms]
 
-
   redis:
     image: redis:7.2.3-alpine3.18
     ports:
       - '6379:6379'
     restart: always
     networks: [btms]
+    
+  cds-simulator:
+    image: defradigital/trade-imports-cds-simulator-api:${TRADE_IMPORTS_CDS_SIMULATOR_API:-latest}
+    pull_policy: always
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    env_file:
+      - 'compose/dotnet-service.env'
+    environment:
+      Mongo__DatabaseUri: mongodb://mongodb:27017/?directConnection=true
+      Acl__Clients__Developer__Secret: developer-pwd
+    ports:
+      - "5003:8080"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health/all" ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+    networks: [ btms ]
 
 volumes:
   mongodb-data:
