@@ -197,6 +197,7 @@ services:
       BTMS_REPORTING_API_BASE_URL: http://reporting-api:8080
       BTMS_REPORTING_API_USERNAME: Developer
       BTMS_REPORTING_API_PASSWORD: developer-pwd
+      AUTH_ENTRA_ID_SECURITY_GROUPS: bf3fc9ea-d4ef-4624-92de-dcc4a617a64d
     networks: [btms]
 
   reporting-api:
