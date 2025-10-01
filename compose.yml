@@ -13,23 +13,11 @@ services:
       Routing__AutomatedHealthCheckDisabled: false
       HealthCheck__AutomatedHealthCheckDisabled: false
       Routing__Destinations__BtmsCds__Link: http://cds-simulator:8080
-      Routing__Destinations__AlvsDecisionComparer__Link: http://decision-comparer:8080
       Routing__Destinations__BtmsDecisionComparer__Link: http://decision-comparer:8080
       Routing__Destinations__BtmsOutboundErrors__Link: http://decision-comparer:8080
-      Routing__Destinations__AlvsOutboundErrors__Link: http://decision-comparer:8080
-      DataApi__BaseAddress: http://data-api:8080
-      DataApi__Password: gateway-pwd
       DecisionComparerApi__BaseAddress: http://decision-comparer:8080
       DecisionComparerApi__Username: BtmsGateway
       DecisionComparerApi__Password: gateway-pwd
-      # alvs decision routing to comparer
-      Routing__NamedRoutes__ALVSDecisionNotificationToCds__LegacyLinkName: None
-      Routing__NamedRoutes__ALVSDecisionNotificationToCds__BtmsLinkName: DecisionComparer
-      Routing__NamedRoutes__ALVSDecisionNotificationToCds__RouteTo: Btms
-      # alvs error notifications to comparer
-      Routing__NamedRoutes__ALVSErrorNotificationToCds__LegacyLinkName: None
-      Routing__NamedRoutes__ALVSErrorNotificationToCds__BtmsLinkName: DecisionComparerErrorNotifications
-      Routing__NamedRoutes__ALVSErrorNotificationToCds__RouteTo: Btms
       # clearance request write to topic
       Routing__NamedRoutes__CDSClearanceRequestToAlvs__LegacyLinkName: None
       Routing__NamedRoutes__CDSClearanceRequestToAlvs__BtmsLinkName: InboundCustomsDeclarationReceivedTopic
