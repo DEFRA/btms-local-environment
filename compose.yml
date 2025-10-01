@@ -15,6 +15,7 @@ services:
       Routing__Destinations__BtmsCds__Link: http://cds-simulator:8080
       Routing__Destinations__BtmsDecisionComparer__Link: http://decision-comparer:8080
       Routing__Destinations__BtmsOutboundErrors__Link: http://decision-comparer:8080
+      HealthCheck__Urls__HMRC_CDS__Url: http://cds-simulator:8080/health
       DecisionComparerApi__BaseAddress: http://decision-comparer:8080
       DecisionComparerApi__Username: BtmsGateway
       DecisionComparerApi__Password: gateway-pwd
