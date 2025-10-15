@@ -112,8 +112,6 @@ function is_ready() {
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_processor || return 1
     # decision-deriver
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_decision_deriver || return 1
-    # decision-comparer
-    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_decision_comparer || return 1
     # reporting api
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_reporting_api || return 1
     return 0
