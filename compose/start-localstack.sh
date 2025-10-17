@@ -87,25 +87,6 @@ aws --endpoint-url=http://localhost:4566 sns set-subscription-attributes \
     --attribute-name FilterPolicy \
     --attribute-value '{"$or": [{"ResourceType": ["CustomsDeclaration"], "SubResourceType": ["ClearanceRequest"]}, {"ResourceType": ["ImportPreNotification"]}]}'
 
-# decision-comparer
-aws --endpoint-url=http://localhost:4566 sqs create-queue \
-    --queue-name trade_imports_data_upserted_decision_comparer
-
-aws --endpoint-url=http://localhost:4566 sns subscribe \
-    --topic-arn arn:aws:sns:eu-west-2:000000000000:trade_imports_data_upserted \
-    --protocol sqs \
-    --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:trade_imports_data_upserted_decision_comparer \
-    --attributes '{"RawMessageDelivery": "true"}'
-
-SUBSCRIPTION_ARN=$(aws --endpoint-url=http://localhost:4566 sns list-subscriptions-by-topic \
-    --topic-arn arn:aws:sns:eu-west-2:000000000000:trade_imports_data_upserted \
-    | jq -r '.Subscriptions[] | select(.Endpoint == "arn:aws:sqs:eu-west-2:000000000000:trade_imports_data_upserted_decision_comparer") | .SubscriptionArn')
-
-aws --endpoint-url=http://localhost:4566 sns set-subscription-attributes \
-    --subscription-arn $SUBSCRIPTION_ARN \
-    --attribute-name FilterPolicy \
-    --attribute-value '{"ResourceType": ["CustomsDeclaration"], "SubResourceType": ["Finalisation"]}'
-
 # reporting api
 aws --endpoint-url=http://localhost:4566 sqs create-queue \
     --queue-name trade_imports_data_upserted_reporting_api
@@ -131,8 +112,6 @@ function is_ready() {
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_processor || return 1
     # decision-deriver
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_decision_deriver || return 1
-    # decision-comparer
-    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_decision_comparer || return 1
     # reporting api
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_reporting_api || return 1
     return 0
