@@ -157,6 +157,10 @@ services:
       BTMS_REPORTING_API_USERNAME: Developer
       BTMS_REPORTING_API_PASSWORD: developer-pwd
       AUTH_ENTRA_ID_SECURITY_GROUPS: bf3fc9ea-d4ef-4624-92de-dcc4a617a64d
+      AUTH_ENTRA_ID_ADMIN_GROUP_ID: 27a55fd7-b86e-4bcf-89e5-bc5dd9357756
+      BTMS_IMPORTS_PROCESSOR_BASE_URL: "http://processor:8080"
+      BTMS_IMPORTS_PROCESSOR_USERNAME: IntegrationTests-pwd
+      BTMS_IMPORTS_PROCESSOR_PASSWORD: integration-tests-pwd
     networks: [btms]
 
   reporting-api:
