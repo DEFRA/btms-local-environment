@@ -1,2 +1,3 @@
 *.override.*
-
+.DS_Store
+*.code-workspace
