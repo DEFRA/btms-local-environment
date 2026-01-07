@@ -149,14 +149,16 @@ services:
       APP_BASE_URL: http://localhost:3000
       AUTH_DEFRA_ID_SERVICE_ID: d7d72b79-9c62-ee11-8df0-000d3adf7047
       AUTH_ENTRA_ID_SCOPES: openid,profile,email,offline_access
-      AUTH_ENTRA_ID_CLIENT_ID: 2fb0d715-affa-4bf1-836e-44a464e3fbea
-      AUTH_ENTRA_ID_CLIENT_SECRET: xEP7L~abzXpEBAJ1yavbfdEcdlvlopLByVNvSbnf
+      AUTH_ENTRA_ID_CLIENT_ID: 3d67a87f-42a2-44c2-962c-43a1ca580429
+      AUTH_ENTRA_ID_CLIENT_SECRET: bDP8Q~tzmXpEBAJ9iavbfsEcdlvlnpLMyVNvSbne
+      AUTH_ENTRA_ID_OIDC_CONFIGURATION_URL: https://login.microsoftonline.com/6f504113-6b64-43f2-ade9-242e05780007/v2.0/.well-known/openid-configuration
       AUTH_DEFRA_ID_ORGANISATIONS: e852b6d3-5f5e-4b90-9932-c2e2350d1099
       AUTH_DEFRA_ID_CLIENT_SECRET: test_value
       BTMS_REPORTING_API_BASE_URL: http://reporting-api:8080
       BTMS_REPORTING_API_USERNAME: Developer
       BTMS_REPORTING_API_PASSWORD: developer-pwd
       AUTH_ENTRA_ID_SECURITY_GROUPS: bf3fc9ea-d4ef-4624-92de-dcc4a617a64d
+      AUTH_DEFRA_ID_ACCOUNT_MANAGEMENT_URL: https://your-account.cpdev.cui.defra.gov.uk/management
       AUTH_ENTRA_ID_ADMIN_GROUP_ID: 27a55fd7-b86e-4bcf-89e5-bc5dd9357756
       BTMS_IMPORTS_PROCESSOR_BASE_URL: "http://processor:8080"
       BTMS_IMPORTS_PROCESSOR_USERNAME: IntegrationTests-pwd
