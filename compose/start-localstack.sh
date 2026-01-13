@@ -19,6 +19,9 @@ aws --endpoint-url=http://localhost:4566 sns create-topic \
     --name trade_imports_data_upserted
 
 # gateway
+aws --endpoint-url=http://localhost:4566 sns create-topic \
+    --name trade_imports_btms_activity
+    
 aws --endpoint-url=http://localhost:4566 sqs create-queue \
     --queue-name trade_imports_data_upserted_btms_gateway
 
@@ -89,6 +92,9 @@ aws --endpoint-url=http://localhost:4566 sns set-subscription-attributes \
 
 # reporting api
 aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_btms_activity_reporting_api
+
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
     --queue-name trade_imports_data_upserted_reporting_api
 
 aws --endpoint-url=http://localhost:4566 sns subscribe \
@@ -96,6 +102,17 @@ aws --endpoint-url=http://localhost:4566 sns subscribe \
     --protocol sqs \
     --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:trade_imports_data_upserted_reporting_api \
     --attributes '{"RawMessageDelivery": "true"}'
+
+aws --endpoint-url=http://localhost:4566 sns subscribe \
+    --topic-arn arn:aws:sns:eu-west-2:000000000000:trade_imports_btms_activity \
+    --protocol sqs \
+    --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:trade_imports_btms_activity_reporting_api \
+    --attributes '{"RawMessageDelivery": "true"}'
+
+
+SUBSCRIPTION_ARN=$(aws --endpoint-url=http://localhost:4566 sns list-subscriptions-by-topic \
+    --topic-arn arn:aws:sns:eu-west-2:000000000000:trade_imports_btms_activity \
+    | jq -r '.Subscriptions[] | select(.Endpoint == "arn:aws:sqs:eu-west-2:000000000000:trade_imports_btms_activity_reporting_api") | .SubscriptionArn')
 
 SUBSCRIPTION_ARN=$(aws --endpoint-url=http://localhost:4566 sns list-subscriptions-by-topic \
     --topic-arn arn:aws:sns:eu-west-2:000000000000:trade_imports_data_upserted \
@@ -114,6 +131,7 @@ function is_ready() {
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_decision_deriver || return 1
     # reporting api
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_reporting_api || return 1
+    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_btms_activity_reporting_api || return 1
     return 0
 }
 
