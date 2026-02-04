@@ -118,6 +118,10 @@ SUBSCRIPTION_ARN=$(aws --endpoint-url=http://localhost:4566 sns list-subscriptio
     --topic-arn arn:aws:sns:eu-west-2:000000000000:trade_imports_data_upserted \
     | jq -r '.Subscriptions[] | select(.Endpoint == "arn:aws:sqs:eu-west-2:000000000000:trade_imports_data_upserted_reporting_api") | .SubscriptionArn')
 
+# GMR Finder -> BTMS GVMS queue
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_matched_gmrs_btms_processor
+
 function is_ready() {
     # data api
     aws --endpoint-url=http://localhost:4566 sns list-topics --query "Topics[?ends_with(TopicArn, ':trade_imports_data_upserted')].TopicArn" || return 1
@@ -132,6 +136,8 @@ function is_ready() {
     # reporting api
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_reporting_api || return 1
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_btms_activity_reporting_api || return 1
+
+    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_matched_gmrs_btms_processor || return 1
     return 0
 }
 
