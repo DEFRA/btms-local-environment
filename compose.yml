@@ -88,6 +88,8 @@ services:
       RawMessageLogging__Enabled: true
       Acl__Clients__IntegrationTests__Secret: integration-tests-pwd
       Btms__OperatingMode: 0
+      ServiceBus__Gmrs__AutoStartConsumers: true
+      MatchedGmrConsumer__AutoStartConsumers: true
     ports:
       - "8082:8080"
     healthcheck:
