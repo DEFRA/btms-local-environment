@@ -89,7 +89,7 @@ services:
       Acl__Clients__IntegrationTests__Secret: integration-tests-pwd
       Btms__OperatingMode: 0
       ServiceBus__Gmrs__AutoStartConsumers: true
-      MatchedGmrConsumer__AutoStartConsumers: true
+      MatchedGmrConsumer__AutoStartConsumers: false
     ports:
       - "8082:8080"
     healthcheck:
