@@ -61,7 +61,15 @@ aws --endpoint-url=http://localhost:4566 sns subscribe \
     --protocol sqs \
     --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:trade_imports_inbound_customs_declarations_processor.fifo \
     --attributes '{"RawMessageDelivery": "true"}'
-    
+
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_inbound_customs_declarations_processor-deadletter.fifo \
+    --attributes FifoQueue=true
+
+aws --endpoint-url=http://localhost:4566 sqs set-queue-attributes \
+    --queue-url http://localhost:4566/000000000000/trade_imports_inbound_customs_declarations_processor.fifo \
+    --attributes '{"RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:eu-west-2:000000000000:trade_imports_inbound_customs_declarations_processor-deadletter.fifo\",\"maxReceiveCount\":\"1\"}"}'
+
 aws --endpoint-url=http://localhost:4566 sqs create-queue \
     --queue-name trade_imports_data_upserted_processor
     
@@ -70,6 +78,13 @@ aws --endpoint-url=http://localhost:4566 sns subscribe \
     --protocol sqs \
     --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:trade_imports_data_upserted_processor \
     --attributes '{"RawMessageDelivery": "true"}'
+
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_data_upserted_processor-deadletter
+    
+aws --endpoint-url=http://localhost:4566 sqs set-queue-attributes \
+    --queue-url http://localhost:4566/000000000000/trade_imports_data_upserted_processor \
+    --attributes '{"RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:eu-west-2:000000000000:trade_imports_data_upserted_processor-deadletter\",\"maxReceiveCount\":\"1\"}"}'
 
 # decision-deriver
 aws --endpoint-url=http://localhost:4566 sqs create-queue \
@@ -80,6 +95,13 @@ aws --endpoint-url=http://localhost:4566 sns subscribe \
     --protocol sqs \
     --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:trade_imports_data_upserted_decision_deriver \
     --attributes '{"RawMessageDelivery": "true"}'
+
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_data_upserted_decision_deriver-deadletter
+
+aws --endpoint-url=http://localhost:4566 sqs set-queue-attributes \
+    --queue-url http://localhost:4566/000000000000/trade_imports_data_upserted_decision_deriver \
+    --attributes '{"RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:eu-west-2:000000000000:trade_imports_data_upserted_decision_deriver-deadletter\",\"maxReceiveCount\":\"1\"}"}'
 
 SUBSCRIPTION_ARN=$(aws --endpoint-url=http://localhost:4566 sns list-subscriptions-by-topic \
     --topic-arn arn:aws:sns:eu-west-2:000000000000:trade_imports_data_upserted \
@@ -109,6 +131,19 @@ aws --endpoint-url=http://localhost:4566 sns subscribe \
     --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:trade_imports_btms_activity_reporting_api \
     --attributes '{"RawMessageDelivery": "true"}'
 
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_data_upserted_reporting_api-deadletter
+
+aws --endpoint-url=http://localhost:4566 sqs set-queue-attributes \
+    --queue-url http://localhost:4566/000000000000/trade_imports_data_upserted_reporting_api \
+    --attributes '{"RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:eu-west-2:000000000000:trade_imports_data_upserted_reporting_api-deadletter\",\"maxReceiveCount\":\"1\"}"}'
+
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_btms_activity_reporting_api-deadletter
+
+aws --endpoint-url=http://localhost:4566 sqs set-queue-attributes \
+    --queue-url http://localhost:4566/000000000000/trade_imports_btms_activity_reporting_api \
+    --attributes '{"RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:eu-west-2:000000000000:trade_imports_btms_activity_reporting_api-deadletter\",\"maxReceiveCount\":\"1\"}"}'
 
 SUBSCRIPTION_ARN=$(aws --endpoint-url=http://localhost:4566 sns list-subscriptions-by-topic \
     --topic-arn arn:aws:sns:eu-west-2:000000000000:trade_imports_btms_activity \
@@ -130,6 +165,8 @@ function is_ready() {
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_btms_gateway-deadletter || return 1    
     # processor
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_inbound_customs_declarations_processor.fifo || return 1
+    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_inbound_customs_declarations_processor-deadletter.fifo || return 1
+    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_processor-deadletter || return 1
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_processor || return 1
     # decision-deriver
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_decision_deriver || return 1

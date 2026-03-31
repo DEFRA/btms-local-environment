@@ -157,14 +157,20 @@ services:
       AUTH_DEFRA_ID_ORGANISATIONS: e852b6d3-5f5e-4b90-9932-c2e2350d1099
       AUTH_DEFRA_ID_CLIENT_SECRET: test_value
       BTMS_REPORTING_API_BASE_URL: http://reporting-api:8080
-      BTMS_REPORTING_API_USERNAME: Developer
+      BTMS_REPORTING_API_USERNAME: BtmsFrontend
       BTMS_REPORTING_API_PASSWORD: developer-pwd
       AUTH_ENTRA_ID_SECURITY_GROUPS: bf3fc9ea-d4ef-4624-92de-dcc4a617a64d
       AUTH_DEFRA_ID_ACCOUNT_MANAGEMENT_URL: https://your-account.cpdev.cui.defra.gov.uk/management
       AUTH_ENTRA_ID_ADMIN_GROUP_ID: 27a55fd7-b86e-4bcf-89e5-bc5dd9357756
       BTMS_IMPORTS_PROCESSOR_BASE_URL: "http://processor:8080"
-      BTMS_IMPORTS_PROCESSOR_USERNAME: IntegrationTests-pwd
-      BTMS_IMPORTS_PROCESSOR_PASSWORD: integration-tests-pwd
+      BTMS_IMPORTS_PROCESSOR_USERNAME: BtmsFrontend
+      BTMS_IMPORTS_PROCESSOR_PASSWORD: developer-pwd
+      BTMS_GATEWAY_BASE_URL: http://btms-gateway:8080
+      DECISION_DERIVER_BASE_URL: http://decision-deriver:8080
+      BTMS_GATEWAY_USERNAME: BtmsFrontend
+      BTMS_GATEWAY_PASSWORD: developer-pwd
+      DECISION_DERIVER_USERNAME: BtmsFrontend
+      DECISION_DERIVER_PASSWORD: developer-pwd
     networks: [btms]
 
   reporting-api:
@@ -260,7 +266,7 @@ services:
     networks: [btms]
 
   localstack:
-    image: localstack/localstack
+    image: localstack/localstack:4.14.0
     ports:
       - '4566:4566'
       - '4510-4559:4510-4559'
