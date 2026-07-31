@@ -18,6 +18,9 @@ export AWS_SECRET_ACCESS_KEY=test
 aws --endpoint-url=http://localhost:4566 sns create-topic \
     --name trade_imports_data_upserted
 
+aws --endpoint-url=http://localhost:4566 sns create-topic \
+    --name trade_imports_tracesched_upserted
+
 # gateway
 aws --endpoint-url=http://localhost:4566 sns create-topic \
     --name trade_imports_btms_activity
@@ -52,6 +55,10 @@ aws --endpoint-url=http://localhost:4566 sns create-topic \
     --name trade_imports_inbound_customs_declarations.fifo
 
 # processor
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_gateway_publisher_ched_updates_processor.fifo \
+    --attributes FifoQueue=true
+
 aws --endpoint-url=http://localhost:4566 sqs create-queue \
     --queue-name trade_imports_inbound_customs_declarations_processor.fifo \
     --attributes FifoQueue=true
