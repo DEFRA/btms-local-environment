@@ -21,6 +21,22 @@ aws --endpoint-url=http://localhost:4566 sns create-topic \
 aws --endpoint-url=http://localhost:4566 sns create-topic \
     --name trade_imports_tracesched_upserted
 
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_tracesched_upserted_queue
+
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_tracesched_upserted_queue-deadletter
+
+aws --endpoint-url=http://localhost:4566 sqs set-queue-attributes \
+    --queue-url http://localhost:4566/000000000000/trade_imports_tracesched_upserted_queue \
+    --attributes '{"RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:eu-west-2:000000000000:trade_imports_tracesched_upserted_queue-deadletter\",\"maxReceiveCount\":\"1\"}"}'
+
+aws --endpoint-url=http://localhost:4566 sns subscribe \
+    --topic-arn arn:aws:sns:eu-west-2:000000000000:trade_imports_tracesched_upserted \
+    --protocol sqs \
+    --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:trade_imports_tracesched_upserted_queue \
+    --attributes '{"RawMessageDelivery": "true"}'
+
 # gateway
 aws --endpoint-url=http://localhost:4566 sns create-topic \
     --name trade_imports_btms_activity
@@ -169,7 +185,10 @@ function is_ready() {
     aws --endpoint-url=http://localhost:4566 sns list-topics --query "Topics[?ends_with(TopicArn, ':trade_imports_data_upserted')].TopicArn" || return 1
     # gateway
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_btms_gateway || return 1
-    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_btms_gateway-deadletter || return 1    
+    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_btms_gateway-deadletter || return 1
+    # traces ched
+    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_tracesched_upserted_queue || return 1
+    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_tracesched_upserted_queue-deadletter || return 1
     # processor
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_inbound_customs_declarations_processor.fifo || return 1
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_inbound_customs_declarations_processor-deadletter.fifo || return 1
