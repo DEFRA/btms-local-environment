@@ -135,6 +135,23 @@ aws --endpoint-url=http://localhost:4566 sns set-subscription-attributes \
     --attribute-name FilterPolicy \
     --attribute-value '{"$or": [{"ResourceType": ["CustomsDeclaration"], "SubResourceType": ["ClearanceRequest"]}, {"ResourceType": ["ImportPreNotification"]}]}'
 
+# decision-deriver (Traces CHEDs)
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_tracesched_upserted_decision_deriver
+
+aws --endpoint-url=http://localhost:4566 sns subscribe \
+    --topic-arn arn:aws:sns:eu-west-2:000000000000:trade_imports_tracesched_upserted \
+    --protocol sqs \
+    --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:trade_imports_tracesched_upserted_decision_deriver \
+    --attributes '{"RawMessageDelivery": "true"}'
+
+aws --endpoint-url=http://localhost:4566 sqs create-queue \
+    --queue-name trade_imports_tracesched_upserted_decision_deriver-deadletter
+
+aws --endpoint-url=http://localhost:4566 sqs set-queue-attributes \
+    --queue-url http://localhost:4566/000000000000/trade_imports_tracesched_upserted_decision_deriver \
+    --attributes '{"RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:eu-west-2:000000000000:trade_imports_tracesched_upserted_decision_deriver-deadletter\",\"maxReceiveCount\":\"1\"}"}'
+
 # reporting api
 aws --endpoint-url=http://localhost:4566 sqs create-queue \
     --queue-name trade_imports_btms_activity_reporting_api
@@ -196,6 +213,7 @@ function is_ready() {
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_processor || return 1
     # decision-deriver
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_decision_deriver || return 1
+    aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_tracesched_upserted_decision_deriver || return 1
     # reporting api
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_data_upserted_reporting_api || return 1
     aws --endpoint-url=http://localhost:4566 sqs get-queue-url --queue-name trade_imports_btms_activity_reporting_api || return 1
