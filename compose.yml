@@ -1,352 +1,243 @@
 services:
-  # application services
-  btms-gateway:
-    image: defradigital/btms-gateway:${BTMS_GATEWAY:-latest}
-    pull_policy: always
-    depends_on:
-      localstack:
-        condition: service_healthy
+  floci:
+    image: floci/floci:2.0.1-compat
     env_file:
-      - 'compose/aws.env'
-      - 'compose/dotnet-service.env'
-    environment:
-      Routing__AutomatedHealthCheckDisabled: false
-      HealthCheck__AutomatedHealthCheckDisabled: false
-      Routing__Destinations__BtmsCds__Link: http://cds-simulator:8080
-      HealthCheck__Urls__HMRC_CDS__Url: http://cds-simulator:8080/health      
-      # clearance request write to topic
-      Routing__NamedRoutes__CDSClearanceRequestToAlvs__LegacyLinkName: None
-      Routing__NamedRoutes__CDSClearanceRequestToAlvs__BtmsLinkName: InboundCustomsDeclarationReceivedTopic
-      Routing__NamedRoutes__CDSClearanceRequestToAlvs__RouteTo: Btms
-      # finalisation write to topic
-      Routing__NamedRoutes__CDSFinalisationNotificationToAlvs__LegacyLinkName: None
-      Routing__NamedRoutes__CDSFinalisationNotificationToAlvs__BtmsLinkName: InboundCustomsDeclarationReceivedTopic
-      Routing__NamedRoutes__CDSFinalisationNotificationToAlvs__RouteTo: Btms
-      # error notifications to topic
-      Routing__NamedRoutes__CDSErrorNotificationToAlvs__LegacyLinkName: None
-      Routing__NamedRoutes__CDSErrorNotificationToAlvs__BtmsLinkName: InboundCustomsDeclarationReceivedTopic
-      Routing__NamedRoutes__CDSErrorNotificationToAlvs__RouteTo: Btms
-      # Redrive ACL
-      Acl__Clients__Developer__Secret: developer-pwd
-      Acl__Clients__Developer__Scopes__0: execute
-    ports:
-      - "8080:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 5s
-    networks: [btms]
-
-  data-api:
-    image: defradigital/trade-imports-data-api:${TRADE_IMPORTS_DATA_API:-latest}
-    pull_policy: always
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      localstack:
-        condition: service_healthy
-    env_file:
-      - 'compose/aws.env'
-      - 'compose/dotnet-service.env'
-    environment:
-      Mongo__DatabaseUri: mongodb://mongodb:27017/?directConnection=true
-      Acl__Clients__Developer__Secret: developer-pwd
-      Acl__Clients__TradeImportsProcessor__Secret: processor-pwd
-      Acl__Clients__TradeImportsDecisionDeriver__Secret: deriver-pwd
-      Acl__Clients__BtmsGateway__Secret: gateway-pwd
-    ports:
-      - "8081:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health/all"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 5s
-    networks: [btms]
-
-  processor:
-    image: defradigital/trade-imports-processor:${TRADE_IMPORTS_PROCESSOR:-latest}
-    pull_policy: always
-    depends_on:
-      asb:
-        condition: service_healthy
-      localstack:
-        condition: service_healthy
-    env_file:
-      - 'compose/aws.env'
-      - 'compose/dotnet-service.env'
-    environment:
-      ServiceBus__Notifications__ConnectionString: "Endpoint=sb://asb-backend;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true"
-      ServiceBus__Gmrs__ConnectionString: "Endpoint=sb://asb-backend;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true"
-      ServiceBus__Ipaffs__ConnectionString: "Endpoint=sb://asb-backend;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true"
-      DataApi__BaseAddress: "http://data-api:8080"
-      DataApi__Password: processor-pwd
-      SERVICE_VERSION: local
-      Mongo__DatabaseUri: mongodb://mongodb:27017/?directConnection=true
-      RawMessageLogging__Enabled: true
-      Acl__Clients__BtmsTeam__Secret: integration-tests-pwd
-      Btms__OperatingMode: 0
-      ServiceBus__Gmrs__AutoStartConsumers: true
-      MatchedGmrConsumer__AutoStartConsumers: false
-      TracesChedsConsumer__AutoStartConsumers: true
-    ports:
-      - "8082:8080"
-    healthcheck:
-      # this will return degraded as the ASB emulator does not support the management
-      # interface, therefore an exception will be seen in logs and this is expected
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health/all"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 5s
-    networks: [btms]
-
-  decision-deriver:
-    image: defradigital/trade-imports-decision-deriver:${TRADE_IMPORTS_DECISION_DERIVER:-latest}
-    pull_policy: always
-    depends_on:
-      localstack:
-        condition: service_healthy
-    env_file:
-      - 'compose/aws.env'
-      - 'compose/dotnet-service.env'
-    environment:
-      DataApi__BaseAddress: "http://data-api:8080"
-      DataApi__Password: deriver-pwd
-    ports:
-      - "8083:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health/all"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 5s
-    networks: [btms]
-
-  btms-portal-frontend:
-    image: defradigital/btms-portal-frontend:${BTMS_PORTAL_FRONTEND:-latest}
-    ports:
-      - "3000:3000"
-      - "9229:9229"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    depends_on:
-      localstack:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    env_file:
-      - compose/aws.env
-    environment:
-      PORT: 3000
-      NODE_ENV: development
-      REDIS_HOST: localhost
-      LOCALSTACK_ENDPOINT: http://localhost:4566
-      USE_SINGLE_INSTANCE_CACHE: true
-      AUTH_DEFRA_ID_OIDC_CONFIGURATION_URL: http://cdp-defra-id-stub.localhost:3200/cdp-defra-id-stub/.well-known/openid-configuration
-      BTMS_API_BASE_URL: http://data-api:8080
-      BTMS_API_USERNAME: Developer
-      BTMS_API_PASSWORD: developer-pwd
-      APP_BASE_URL: http://localhost:3000
-      AUTH_DEFRA_ID_SERVICE_ID: d7d72b79-9c62-ee11-8df0-000d3adf7047
-      AUTH_ENTRA_ID_SCOPES: openid,profile,email,offline_access
-      AUTH_ENTRA_ID_CLIENT_ID: 3d67a87f-42a2-44c2-962c-43a1ca580429
-      AUTH_ENTRA_ID_CLIENT_SECRET: bDP8Q~tzmXpEBAJ9iavbfsEcdlvlnpLMyVNvSbne
-      AUTH_ENTRA_ID_OIDC_CONFIGURATION_URL: https://login.microsoftonline.com/6f504113-6b64-43f2-ade9-242e05780007/v2.0/.well-known/openid-configuration
-      AUTH_DEFRA_ID_ORGANISATIONS: e852b6d3-5f5e-4b90-9932-c2e2350d1099
-      AUTH_DEFRA_ID_CLIENT_SECRET: test_value
-      BTMS_REPORTING_API_BASE_URL: http://reporting-api:8080
-      BTMS_REPORTING_API_USERNAME: BtmsFrontend
-      BTMS_REPORTING_API_PASSWORD: developer-pwd
-      AUTH_ENTRA_ID_SECURITY_GROUPS: bf3fc9ea-d4ef-4624-92de-dcc4a617a64d
-      AUTH_DEFRA_ID_ACCOUNT_MANAGEMENT_URL: https://your-account.cpdev.cui.defra.gov.uk/management
-      AUTH_ENTRA_ID_ADMIN_GROUP_ID: 27a55fd7-b86e-4bcf-89e5-bc5dd9357756
-      BTMS_IMPORTS_PROCESSOR_BASE_URL: "http://processor:8080"
-      BTMS_IMPORTS_PROCESSOR_USERNAME: BtmsFrontend
-      BTMS_IMPORTS_PROCESSOR_PASSWORD: developer-pwd
-      BTMS_GATEWAY_BASE_URL: http://btms-gateway:8080
-      DECISION_DERIVER_BASE_URL: http://decision-deriver:8080
-      BTMS_GATEWAY_USERNAME: BtmsFrontend
-      BTMS_GATEWAY_PASSWORD: developer-pwd
-      DECISION_DERIVER_USERNAME: BtmsFrontend
-      DECISION_DERIVER_PASSWORD: developer-pwd
-    networks: [btms]
-
-  reporting-api:
-    image: defradigital/trade-imports-reporting-api:${TRADE_IMPORTS_REPORTING_API:-latest}
-    pull_policy: always
-    depends_on:
-      localstack:
-        condition: service_healthy
-    env_file:
-      - 'compose/aws.env'
-      - 'compose/dotnet-service.env'
-    environment:
-      SERVICE_VERSION: local
-      Mongo__DatabaseUri: mongodb://mongodb:27017/?directConnection=true
-      Acl__Clients__IntegrationTests__Secret: integration-tests-pwd
-      Acl__Clients__Developer__Secret: developer-pwd
-    ports:
-      - "8085:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health/all"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 5s
-    networks: [btms]
-
-  # application dependencies
-  cdp-defra-id-stub:
-    image: defradigital/cdp-defra-id-stub:${CDP_DEFRA_ID_STUB:-latest}
-    ports:
-      - "3200:3200"
-    depends_on:
-      localstack:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    env_file:
-      - compose/aws.env
-    environment:
-      PORT: 3200
-      NODE_ENV: development
-      REDIS_HOST: redis
-      USE_SINGLE_INSTANCE_CACHE: true
-      ISSUER: http://cdp-defra-id-stub.localhost:3200
-      APP_BASE_URL: http://cdp-defra-id-stub.localhost:3200
-    networks:
-      btms:
-        aliases:
-          - cdp-defra-id-stub.localhost
-  asb-backend:
-    environment:
-      SQL_WAIT_INTERVAL: 0
-      SQL_SERVER: sqledge
-      MSSQL_SA_PASSWORD: "s4usag3s!"
-      ACCEPT_EULA: "Y"
-    depends_on:
-      sqledge:
-        condition: service_healthy
-    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
-    ports:
-      - "5672:5672"
-      - "5300:5300"
-    pull_policy: always
+      - ./config/aws.env
+      - ./config/floci.env
     volumes:
-      - "./compose/asb.json:/ServiceBus_Emulator/ConfigFiles/Config.json"
-    networks: [btms]
-
-  asb:
-    image: alpine/curl:latest
-    depends_on:
-      asb-backend:
-        condition: service_started
-    command: ["tail", "-f", "/dev/null"]
+      - ./scripts/floci/ready.d:/etc/floci/init/ready.d:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://asb-backend:5300/health"]
+      test: [ "CMD-SHELL", "curl --fail --silent http://localhost:4566/_floci/init | grep -q '\"ready\":true'"]
       interval: 5s
       timeout: 5s
+      retries: 3
+      start_period: 20s
+    ports:
+      - "4566:4566"
+
+  # Initialise a Mongo cluster with a replicaset of 1 node.
+  # Based on https://medium.com/workleap/the-only-local-mongodb-replica-set-with-docker-compose-guide-youll-ever-need-2f0b74dd8384
+  # Since we are using transactions, we require a replicaset. Local dev with docker compose uses 1 node below, but our live
+  # environments have multiple nodes.
+  # The replicaset needs initialising, so the healthcheck can be hijacked to initialise this so that it can keep retrying
+  # until the operation is successful (might need to wait a while after container boot for this to work, hence the interval/retries)
+  # WARNING: do not turn on authentication, otherwise will need to deal with generating key pairs and sharing them between
+  # the replicaset nodes. For local development this is overkill, so just turn off auth and connect to Mongo without creds.
+  mongodb:
+    image: mongo:6.0.28
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: echo "try { rs_status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb:27017'}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
       retries: 30
       start_period: 5s
-    networks: [btms]
+    restart:
+      always
+    ports:
+      - "27017:27017"
 
-  sqledge:
+  mssql:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    env_file:
+      - ./config/mssql.env
     healthcheck:
       interval: 5s
-      retries: 30
+      retries: 10
       start_period: 5s
       test: timeout 1 bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/1433'
       timeout: 5s
-    image: mcr.microsoft.com/azure-sql-edge:latest
-    environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "s4usag3s!"
-    networks: [btms]
-
-  localstack:
-    image: localstack/localstack:4.14.0
-    ports:
-      - '4566:4566'
-      - '4510-4559:4510-4559'
-    env_file:
-      - 'compose/aws.env'
-    environment:
-      DEBUG: ${DEBUG:-1}
-      LS_LOG: info
-      SERVICES: sqs,sns
-      LOCALSTACK_HOST: 127.0.0.1
-      TZ: Europe/London
-    volumes:
-      - '${TMPDIR:-/tmp}/localstack:/var/lib/localstack'
-      - ./compose/start-localstack.sh:/etc/localstack/init/ready.d/start-localstack.sh
-    healthcheck:
-      test: cat /tmp/ready
-      interval: 5s
-      start_period: 5s
-      retries: 30
-    networks: [btms]
-
-  mongodb:
-    # Initialise a Mongo cluster with a replicaset of 1 node.
-    # Based on https://medium.com/workleap/the-only-local-mongodb-replica-set-with-docker-compose-guide-youll-ever-need-2f0b74dd8384
-    # Since we are using transactions, we require a replicaset. Local dev with docker compose uses 1 node below, but our live
-    # environments have multiple nodes.
-    # The replicaset needs initialising, so the healthcheck can be hijacked to initialise this so that it can keep retrying
-    # until the operation is successful (might need to wait a while after container boot for this to work, hence the interval/retries)
-    # WARNING: do not turn on authentication, otherwise will need to deal with generating key pairs and sharing them between
-    # the replicaset nodes. For local development this is overkill, so just turn off auth and connect to Mongo without creds.
-    image: mongo:6.0.13
-    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
-    ports:
-      - "27017:27017"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    healthcheck:
-      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017'}]}) }" | mongosh --port 27017 --quiet
-      interval: 5s
-      timeout: 30s
-      start_period: 0s
-      start_interval: 1s
-      retries: 30
-    volumes:
-      - mongodb-data:/data
-    restart: always
-    networks: [btms]
 
   redis:
     image: redis:7.2.3-alpine3.18
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      start_period: 5s
+      retries: 3
     ports:
-      - '6379:6379'
-    restart: always
-    networks: [btms]
-    
-  cds-simulator:
+      - "6379:6379"
+
+  servicebus-emulator:
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+    env_file:
+      - ./config/servicebus-emulator.env
+    volumes:
+      - ./config/servicebus-emulator.json:/ServiceBus_Emulator/ConfigFiles/Config.json
+    depends_on:
+      mssql:
+        condition: service_healthy
+    ports:
+      - "5672:5672"
+      - "5300:5300"
+
+  btms-gateway:
+    image: defradigital/btms-gateway:${BTMS_GATEWAY:-latest}
+    env_file:
+      - ./config/aws.env
+      - ./config/btms-gateway.env
+    depends_on:
+      floci:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      trade-imports-cds-simulator-api:
+        condition: service_healthy
+      trade-imports-data-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080/health"]
+      interval: 3s
+      start_period: 2s
+      retries: 3
+    ports:
+      - "8080:8080"
+
+  btms-portal-frontend:
+    image: defradigital/btms-portal-frontend:${BTMS_PORTAL_FRONTEND:-latest}
+    env_file:
+      - ./config/btms-portal-frontend.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      btms-gateway:
+        condition: service_healthy
+      cdp-defra-id-stub:
+        condition: service_healthy
+      trade-imports-data-api:
+        condition: service_healthy
+      trade-imports-decision-deriver:
+        condition: service_healthy
+      trade-imports-processor:
+        condition: service_healthy
+      trade-imports-reporting-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:3000/health"]
+      interval: 3s
+      start_period: 2s
+      retries: 3
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+
+  cdp-defra-id-stub:
+    image: defradigital/cdp-defra-id-stub:${CDP_DEFRA_ID_STUB:-latest}
+    env_file:
+      - ./config/aws.env
+      - ./config/cdp-defra-id-stub.env
+    depends_on:
+      floci:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:3200/health"]
+      interval: 3s
+      start_period: 2s
+      retries: 3
+    ports:
+      - "3200:3200"
+    networks:
+      default:
+        aliases:
+          - cdp-defra-id-stub.localhost
+
+  trade-imports-cds-simulator-api:
     image: defradigital/trade-imports-cds-simulator-api:${TRADE_IMPORTS_CDS_SIMULATOR_API:-latest}
-    pull_policy: always
+    env_file:
+      - ./config/aws.env
+      - ./config/trade-imports-cds-simulator-api.env
     depends_on:
       mongodb:
         condition: service_healthy
-    env_file:
-      - 'compose/dotnet-service.env'
-    environment:
-      Mongo__DatabaseUri: mongodb://mongodb:27017/?directConnection=true
-      Acl__Clients__Developer__Secret: developer-pwd
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080/health"]
+      interval: 3s
+      start_period: 2s
+      retries: 3
     ports:
       - "5003:8080"
+
+  trade-imports-data-api:
+    image: defradigital/trade-imports-data-api:${TRADE_IMPORTS_DATA_API:-latest}
+    env_file:
+      - ./config/aws.env
+      - ./config/trade-imports-data-api.env
+    depends_on:
+      floci:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/health/all" ]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 5s
-    networks: [ btms ]
+      test: ["CMD", "curl", "http://localhost:8080/health"]
+      interval: 3s
+      start_period: 2s
+      retries: 3
+    ports:
+      - "8081:8080"
+
+  trade-imports-decision-deriver:
+    image: defradigital/trade-imports-decision-deriver:${TRADE_IMPORTS_DECISION_DERIVER:-latest}
+    env_file:
+      - ./config/aws.env
+      - ./config/trade-imports-decision-deriver.env
+    depends_on:
+      floci:
+        condition: service_healthy
+      trade-imports-data-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080/health"]
+      interval: 3s
+      start_period: 2s
+      retries: 3
+    ports:
+      - "8083:8080"
+
+  trade-imports-processor:
+    image: defradigital/trade-imports-processor:${TRADE_IMPORTS_PROCESSOR:-latest}
+    env_file:
+      - ./config/aws.env
+      - ./config/trade-imports-processor.env
+    depends_on:
+      floci:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      trade-imports-data-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080/health"]
+      interval: 3s
+      start_period: 2s
+      retries: 3
+    ports:
+      - "8082:8080"
+
+  trade-imports-reporting-api:
+    image: defradigital/trade-imports-reporting-api:${TRADE_IMPORTS_REPORTING_API:-latest}
+    env_file:
+      - ./config/aws.env
+      - ./config/trade-imports-reporting-api.env
+    depends_on:
+      floci:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      trade-imports-data-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080/health"]
+      interval: 3s
+      start_period: 2s
+      retries: 3
+    ports:
+      - "8085:8080"
 
 volumes:
   mongodb-data:
-
-networks:
-  btms:
-    driver: bridge
