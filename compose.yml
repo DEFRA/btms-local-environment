@@ -1,6 +1,6 @@
 services:
   floci:
-    image: floci/floci:2.0.1-compat
+    image: floci/floci:nightly-09222026-compat # https://github.com/floci-io/floci/pull/3746
     env_file:
       - ./config/aws.env
       - ./config/floci.env
@@ -29,7 +29,7 @@ services:
     volumes:
       - mongodb-data:/data/db
     healthcheck:
-      test: echo "try { rs_status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb:27017'}]}) }" | mongosh --port 27017 --quiet
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb:27017'}]}) }" | mongosh --port 27017 --quiet
       interval: 5s
       timeout: 30s
       retries: 30
