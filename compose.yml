@@ -106,6 +106,8 @@ services:
         condition: service_healthy
       cdp-defra-id-stub:
         condition: service_healthy
+      cdp-defra-id-stub-users:
+        condition: service_completed_successfully
       trade-imports-data-api:
         condition: service_healthy
       trade-imports-decision-deriver:
@@ -146,6 +148,16 @@ services:
       default:
         aliases:
           - cdp-defra-id-stub.localhost
+
+  # Registers a portal user in the stub on start-up, then exits.
+  cdp-defra-id-stub-users:
+    image: curlimages/curl:8.11.1
+    entrypoint: ["/scripts/register-users.sh"]
+    volumes:
+      - ./scripts/cdp-defra-id-stub:/scripts:ro
+    depends_on:
+      cdp-defra-id-stub:
+        condition: service_healthy
 
   trade-imports-cds-simulator-api:
     image: defradigital/trade-imports-cds-simulator-api:${TRADE_IMPORTS_CDS_SIMULATOR_API:-latest}
