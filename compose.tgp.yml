@@ -1,0 +1,145 @@
+# Adds Trade Gateway (TGP) to the BTMS stack, so TRACES CHEDs flow from the simulator to the processor:
+#
+#   docker compose -f compose.yml -f compose.tgp.yml up -d
+#
+# TGP shares this stack's floci and Mongo. Its services take new host ports (+100 on TGP's own) to
+# avoid btms-gateway, btms-portal-frontend and reporting-api.
+
+services:
+  floci:
+    volumes:
+      - ./scripts/floci/ready.d:/etc/floci/btms.d:ro
+      # Replaces the base file's mount. Runs the BTMS scripts above, then adds TGP's resources.
+      - ./scripts/floci/combined.d:/etc/floci/init/ready.d:ro
+    healthcheck:
+      # TGP's resources roughly double init time, past the base file's 35s allowance.
+      retries: 12
+  
+  btms-portal-frontend:
+    environment:
+      SHOW_TRACES_CHEDS: true
+      SHOW_QUANTITY_STATUS: true
+
+  trade-imports-processor:
+    environment:
+      TracesChedsConsumer__AutoStartConsumers: "true"
+
+  trade-imports-decision-deriver:
+    environment:
+
+      DecisionRules__Traces__Cheds__CVEDA__DisabledRules__0: None
+      DecisionRules__Traces__Cheds__CVEDP__DisabledRules__0: None
+      DecisionRules__Traces__Cheds__CHEDPP__DisabledRules__0: None
+      DecisionRules__Traces__Cheds__CED__DisabledRules__0: None
+
+      DecisionRules__Traces__Level2Mode: 1
+      DecisionRules__Traces__Level3Mode: 1
+      DecisionRules__Traces__Level4Mode: 1
+
+      QuantityManagementClient__BaseUrl: http://trade-imports-quantity-mgmt:8085
+
+  trade-imports-data-api:
+    environment:
+      Acl__Clients__TradeImportsQuantityMgmt__Secret: quantity-mgmt-pwd
+
+  trade-imports-quantity-mgmt:
+    image: defradigital/trade-imports-quantity-mgmt:${TRADE_IMPORTS_QUANTITY_MGMT:-latest}
+    env_file:
+      - ./config/tgp/aws.env
+      - ./config/tgp/trade-imports-quantity-mgmt.env
+    depends_on:
+      floci:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      trade-imports-data-api:
+        condition: service_healthy
+      trade-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8085/health"]
+      interval: 3s
+      timeout: 5s
+      retries: 3
+      start_period: 2s
+    ports:
+      - "8186:8085"
+
+  trade-tracesnt-stub:
+    image: defradigital/trade-tracesnt-stub:${TRADE_TRACESNT_STUB:-latest}
+    env_file:
+      - ./config/tgp/trade-tracesnt-stub.env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    ports:
+      - "3100:8080"
+
+  trade-traces-poc:
+    image: defradigital/trade-traces-poc:${TRADE_TRACES_POC:-latest}
+    env_file:
+      - ./config/tgp/aws.env
+      - ./config/tgp/trade-traces-poc.env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      trade-tracesnt-stub:
+        condition: service_healthy
+      trade-imports-data-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    ports:
+      - "8090:8080"
+
+  trade-gateway:
+    image: defradigital/trade-gateway:${TRADE_GATEWAY:-latest}
+    env_file:
+      - ./config/tgp/aws.env
+      - ./config/tgp/trade-gateway.env
+    depends_on:
+      floci:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      trade-tracesnt-stub:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
+      interval: 3s
+      timeout: 5s
+      retries: 3
+      start_period: 2s
+    ports:
+      - "8180:8080"
+
+  trade-gateway-publisher:
+    image: defradigital/trade-gateway-publisher:${TRADE_GATEWAY_PUBLISHER:-latest}
+    env_file:
+      - ./config/tgp/aws.env
+      - ./config/tgp/trade-gateway-publisher.env
+    depends_on:
+      floci:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      trade-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8085/health"]
+      interval: 3s
+      timeout: 5s
+      retries: 3
+      start_period: 2s
+    ports:
+      - "8185:8085"
