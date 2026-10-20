@@ -3,6 +3,7 @@
 # trade-imports-data-api
 awslocal sns create-topic --name trade_imports_data_upserted
 awslocal sns create-topic --name trade_imports_tracesched_upserted
+awslocal sns create-topic --name trade_imports_iuunotification_upserted
 awslocal sqs create-queue --queue-name trade_imports_tracesched_upserted_queue-deadletter
 awslocal sqs create-queue --queue-name trade_imports_tracesched_upserted_queue --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:'"$AWS_REGION"':000000000000:trade_imports_tracesched_upserted_queue-deadletter\",\"maxReceiveCount\":\"1\"}"}'
 awslocal sns subscribe --topic-arn arn:aws:sns:$AWS_REGION:000000000000:trade_imports_tracesched_upserted --protocol sqs --notification-endpoint arn:aws:sqs:$AWS_REGION:000000000000:trade_imports_tracesched_upserted_queue --attributes '{"RawMessageDelivery":"true"}'

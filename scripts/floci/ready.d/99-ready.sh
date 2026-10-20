@@ -4,6 +4,7 @@ function is_ready() {
   # trade-imports-data-api
   awslocal sns list-topics --query "Topics[?ends_with(TopicArn, ':trade_imports_data_upserted')].TopicArn" || return 1
   awslocal sns list-topics --query "Topics[?ends_with(TopicArn, ':trade_imports_tracesched_upserted')].TopicArn" || return 1
+  awslocal sns list-topics --query "Topics[?ends_with(TopicArn, ':trade_imports_iuunotification_upserted')].TopicArn" || return 1
   awslocal sqs get-queue-url --queue-name trade_imports_tracesched_upserted_queue-deadletter || return 1
   awslocal sqs get-queue-url --queue-name trade_imports_tracesched_upserted_queue || return 1
 
