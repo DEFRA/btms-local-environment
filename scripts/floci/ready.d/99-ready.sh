@@ -32,6 +32,8 @@ function is_ready() {
   awslocal sqs get-queue-url --queue-name trade_imports_data_upserted_reporting_api || return 1
   awslocal sqs get-queue-url --queue-name trade_imports_btms_activity_reporting_api-deadletter || return 1
   awslocal sqs get-queue-url --queue-name trade_imports_btms_activity_reporting_api || return 1
+  awslocal sqs get-queue-url --queue-name trade_imports_tracesched_upserted_reporting_api-deadletter || return 1
+  awslocal sqs get-queue-url --queue-name trade_imports_tracesched_upserted_reporting_api || return 1
 
   # GMR Finder -> BTMS GVMS queue
   awslocal sqs get-queue-url --queue-name trade_imports_matched_gmrs_btms_processor || return 1
