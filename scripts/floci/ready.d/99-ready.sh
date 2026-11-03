@@ -19,6 +19,8 @@ function is_ready() {
   awslocal sqs get-queue-url --queue-name trade_imports_data_upserted_decision_deriver || return 1
   awslocal sqs get-queue-url --queue-name trade_imports_tracesched_upserted_decision_deriver-deadletter || return 1
   awslocal sqs get-queue-url --queue-name trade_imports_tracesched_upserted_decision_deriver || return 1
+  awslocal sqs get-queue-url --queue-name trade_imports_iuucertification_upserted_decision_deriver-deadletter || return 1
+  awslocal sqs get-queue-url --queue-name trade_imports_iuucertification_upserted_decision_deriver || return 1
 
   # trade-imports-processor
   awslocal sqs get-queue-url --queue-name trade_imports_inbound_customs_declarations_processor-deadletter.fifo || return 1
