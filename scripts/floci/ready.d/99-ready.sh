@@ -26,6 +26,9 @@ function is_ready() {
   awslocal sqs get-queue-url --queue-name trade_imports_data_upserted_processor-deadletter || return 1
   awslocal sqs get-queue-url --queue-name trade_imports_data_upserted_processor || return 1
   awslocal sqs get-queue-url --queue-name trade_gateway_publisher_ched_updates_processor.fifo || return 1
+  awslocal sns list-topics --query "Topics[?ends_with(TopicArn, ':trade_imports_iuu_notifications')].TopicArn" || return 1
+  awslocal sqs get-queue-url --queue-name trade_imports_iuu_notifications_btms_processor-deadletter || return 1
+  awslocal sqs get-queue-url --queue-name trade_imports_iuu_notifications_btms_processor || return 1
 
   # trade-imports-reporting-api
   awslocal sqs get-queue-url --queue-name trade_imports_data_upserted_reporting_api-deadletter || return 1
