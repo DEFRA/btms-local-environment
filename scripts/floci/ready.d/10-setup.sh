@@ -22,6 +22,9 @@ awslocal sns subscribe --topic-arn arn:aws:sns:$AWS_REGION:000000000000:trade_im
 awslocal sqs create-queue --queue-name trade_imports_tracesched_upserted_decision_deriver-deadletter
 awslocal sqs create-queue --queue-name trade_imports_tracesched_upserted_decision_deriver --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:'"$AWS_REGION"':000000000000:trade_imports_tracesched_upserted_decision_deriver-deadletter\",\"maxReceiveCount\":\"1\"}"}'
 awslocal sns subscribe --topic-arn arn:aws:sns:$AWS_REGION:000000000000:trade_imports_tracesched_upserted --protocol sqs --notification-endpoint arn:aws:sqs:$AWS_REGION:000000000000:trade_imports_tracesched_upserted_decision_deriver --attributes '{"RawMessageDelivery":"true"}'
+awslocal sqs create-queue --queue-name trade_imports_iuucertification_upserted_decision_deriver-deadletter
+awslocal sqs create-queue --queue-name trade_imports_iuucertification_upserted_decision_deriver --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:'"$AWS_REGION"':000000000000:trade_imports_iuucertification_upserted_decision_deriver-deadletter\",\"maxReceiveCount\":\"1\"}"}'
+awslocal sns subscribe --topic-arn arn:aws:sns:$AWS_REGION:000000000000:trade_imports_iuunotification_upserted --protocol sqs --notification-endpoint arn:aws:sqs:$AWS_REGION:000000000000:trade_imports_iuucertification_upserted_decision_deriver --attributes '{"RawMessageDelivery":"true"}'
 
 # trade-imports-processor
 awslocal sqs create-queue --queue-name trade_imports_inbound_customs_declarations_processor-deadletter.fifo --attributes '{"FifoQueue":"true"}'
@@ -31,6 +34,10 @@ awslocal sqs create-queue --queue-name trade_imports_data_upserted_processor-dea
 awslocal sqs create-queue --queue-name trade_imports_data_upserted_processor --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:'"$AWS_REGION"':000000000000:trade_imports_data_upserted_processor-deadletter\",\"maxReceiveCount\":\"1\"}"}'
 awslocal sns subscribe --topic-arn arn:aws:sns:$AWS_REGION:000000000000:trade_imports_data_upserted --protocol sqs --notification-endpoint arn:aws:sqs:$AWS_REGION:000000000000:trade_imports_data_upserted_processor --attributes '{"RawMessageDelivery":"true"}'
 awslocal sqs create-queue --queue-name trade_gateway_publisher_ched_updates_processor.fifo --attributes '{"FifoQueue":"true"}'
+awslocal sns create-topic --name trade_imports_iuu_notifications
+awslocal sqs create-queue --queue-name trade_imports_iuu_notifications_btms_processor-deadletter
+awslocal sqs create-queue --queue-name trade_imports_iuu_notifications_btms_processor --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:'"$AWS_REGION"':000000000000:trade_imports_iuu_notifications_btms_processor-deadletter\",\"maxReceiveCount\":\"1\"}"}'
+awslocal sns subscribe --topic-arn arn:aws:sns:$AWS_REGION:000000000000:trade_imports_iuu_notifications --protocol sqs --notification-endpoint arn:aws:sqs:$AWS_REGION:000000000000:trade_imports_iuu_notifications_btms_processor --attributes '{"RawMessageDelivery":"true"}'
 
 # trade-imports-reporting-api
 awslocal sqs create-queue --queue-name trade_imports_data_upserted_reporting_api-deadletter
