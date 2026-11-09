@@ -4,6 +4,8 @@
 awslocal sns create-topic --name trade_imports_data_upserted
 awslocal sns create-topic --name trade_imports_tracesched_upserted
 awslocal sns create-topic --name trade_imports_iuunotification_upserted
+awslocal sns create-topic --name trade_imports_chedreservation_upserted # NEW
+
 awslocal sqs create-queue --queue-name trade_imports_tracesched_upserted_queue-deadletter
 awslocal sqs create-queue --queue-name trade_imports_tracesched_upserted_queue --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:'"$AWS_REGION"':000000000000:trade_imports_tracesched_upserted_queue-deadletter\",\"maxReceiveCount\":\"1\"}"}'
 awslocal sns subscribe --topic-arn arn:aws:sns:$AWS_REGION:000000000000:trade_imports_tracesched_upserted --protocol sqs --notification-endpoint arn:aws:sqs:$AWS_REGION:000000000000:trade_imports_tracesched_upserted_queue --attributes '{"RawMessageDelivery":"true"}'
@@ -49,6 +51,11 @@ awslocal sns subscribe --topic-arn arn:aws:sns:$AWS_REGION:000000000000:trade_im
 awslocal sqs create-queue --queue-name trade_imports_tracesched_upserted_reporting_api-deadletter
 awslocal sqs create-queue --queue-name trade_imports_tracesched_upserted_reporting_api --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:'"$AWS_REGION"':000000000000:trade_imports_tracesched_upserted_reporting_api-deadletter\",\"maxReceiveCount\":\"1\"}"}'
 awslocal sns subscribe --topic-arn arn:aws:sns:$AWS_REGION:000000000000:trade_imports_tracesched_upserted --protocol sqs --notification-endpoint arn:aws:sqs:$AWS_REGION:000000000000:trade_imports_tracesched_upserted_reporting_api --attributes '{"RawMessageDelivery":"true"}'
+
+# NEW: TRACES CHED reservation events
+awslocal sqs create-queue --queue-name trade_imports_chedreservation_upserted_reporting_api-deadletter
+awslocal sqs create-queue --queue-name trade_imports_chedreservation_upserted_reporting_api --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:'"$AWS_REGION"':000000000000:trade_imports_chedreservation_upserted_reporting_api-deadletter\",\"maxReceiveCount\":\"1\"}"}'
+awslocal sns subscribe --topic-arn arn:aws:sns:$AWS_REGION:000000000000:trade_imports_chedreservation_upserted --protocol sqs --notification-endpoint arn:aws:sqs:$AWS_REGION:000000000000:trade_imports_chedreservation_upserted_reporting_api --attributes '{"RawMessageDelivery":"true"}'
 
 # GMR Finder -> BTMS GVMS queue
 awslocal sqs create-queue --queue-name trade_imports_matched_gmrs_btms_processor

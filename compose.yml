@@ -164,6 +164,8 @@ services:
     env_file:
       - ./config/aws.env
       - ./config/trade-imports-cds-simulator-api.env
+    environment:
+      BtmsClient__GatewayBaseUrl: "http://btms-gateway:8080"
     depends_on:
       mongodb:
         condition: service_healthy
