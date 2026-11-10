@@ -5,6 +5,8 @@ function is_ready() {
   awslocal sns list-topics --query "Topics[?ends_with(TopicArn, ':trade_imports_data_upserted')].TopicArn" || return 1
   awslocal sns list-topics --query "Topics[?ends_with(TopicArn, ':trade_imports_tracesched_upserted')].TopicArn" || return 1
   awslocal sns list-topics --query "Topics[?ends_with(TopicArn, ':trade_imports_iuunotification_upserted')].TopicArn" || return 1
+  awslocal sns list-topics --query "Topics[?ends_with(TopicArn, ':trade_imports_chedreservation_upserted')].TopicArn" || return 1 # NEW
+
   awslocal sqs get-queue-url --queue-name trade_imports_tracesched_upserted_queue-deadletter || return 1
   awslocal sqs get-queue-url --queue-name trade_imports_tracesched_upserted_queue || return 1
 
@@ -39,6 +41,10 @@ function is_ready() {
   awslocal sqs get-queue-url --queue-name trade_imports_btms_activity_reporting_api || return 1
   awslocal sqs get-queue-url --queue-name trade_imports_tracesched_upserted_reporting_api-deadletter || return 1
   awslocal sqs get-queue-url --queue-name trade_imports_tracesched_upserted_reporting_api || return 1
+
+  # NEW: TRACES CHED reservation events
+  awslocal sqs get-queue-url --queue-name trade_imports_chedreservation_upserted_reporting_api-deadletter || return 1
+  awslocal sqs get-queue-url --queue-name trade_imports_chedreservation_upserted_reporting_api || return 1
 
   # GMR Finder -> BTMS GVMS queue
   awslocal sqs get-queue-url --queue-name trade_imports_matched_gmrs_btms_processor || return 1
