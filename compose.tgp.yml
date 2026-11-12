@@ -23,6 +23,7 @@ services:
   trade-imports-processor:
     environment:
       TracesChedsConsumer__AutoStartConsumers: "true"
+      IuuNotificationsConsumer__QueueName: trade_imports_iuunotification_sim_upserted_queue
 
   trade-imports-decision-deriver:
     environment:
@@ -143,3 +144,60 @@ services:
       start_period: 2s
     ports:
       - "8185:8085"
+
+  trade-imports-simulator-frontend:
+    image: defradigital/trade-imports-simulator-frontend:${TRADE_IMPORTS_SIMULATOR_FRONTEND:-latest}
+    ports:
+      - "3001:3000"
+    env_file:
+      - ./config/aws.env
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      REDIS_HOST: redis
+      LOG_FORMAT: pino-pretty
+      SESSION_COOKIE_SECURE: "false"
+      USE_SINGLE_INSTANCE_CACHE: "true"
+      REDIS_TLS: "false"
+      # TRACES Simulator
+      TRACES_SIMULATOR_ENABLED: "true"
+      TRACES_SIMULATOR_URL: http://trade-tracesnt-stub:8080
+      TRACES_POC_URL: http://trade-traces-poc:8080
+      # CDS Simulator
+      CDS_SIMULATOR_ENABLED: "true"
+      CDS_SIMULATOR_URL: http://trade-imports-cds-simulator-api:8080
+      # FIS Simulator
+      FIS_SIMULATOR_ENABLED: "true"
+      FIS_SIMULATOR_URL: http://fis-simulator-api:8085
+    depends_on:
+      redis:
+        condition: service_healthy
+      trade-tracesnt-stub:
+        condition: service_healthy
+      trade-imports-cds-simulator-api:
+        condition: service_healthy
+  
+  fis-simulator-api:
+    image: defradigital/trade-imports-fis-simulator-api:${TRADE_IMPORTS_FIS_SIMULATOR_API:-latest}
+    env_file:
+      - ./config/aws.env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8085
+      ENVIRONMENT: local
+      Mongo__DatabaseUri: mongodb://mongodb:27017/?directConnection=true
+      AWS__ServiceUrl: http://floci:4566
+      AWS__AuthenticationRegion: eu-west-2
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      floci:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    ports:
+      - "5005:8085"
