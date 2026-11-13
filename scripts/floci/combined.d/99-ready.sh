@@ -26,6 +26,11 @@ function is_ready() {
   awslocal sqs get-queue-url --queue-name trade_imports_data_upserted_quantity_mgmt-deadletter || return 1
   awslocal sns list-subscriptions-by-topic --topic-arn "arn:aws:sns:$AWS_REGION:000000000000:trade_imports_data_upserted" | grep -q trade_imports_data_upserted_quantity_mgmt || return 1
 
+  # FIS Simulator
+  awslocal sns get-topic-attributes --topic-arn "arn:aws:sns:$AWS_REGION:000000000000:trade_imports_iuunotification_sim_upserted" >/dev/null || return 1
+  awslocal sqs get-queue-url --queue-name trade_imports_iuunotification_sim_upserted_queue >/dev/null || return 1
+  awslocal sns list-subscriptions-by-topic --topic-arn "arn:aws:sns:$AWS_REGION:000000000000:trade_imports_iuunotification_sim_upserted" | grep -q "trade_imports_iuunotification_sim_upserted_queue" || return 1
+
   return 0
 }
 
