@@ -79,7 +79,7 @@
             },
             "Subscriptions": [
               {
-                "Name": "ttl-test",
+                "Name": "trade-gateway-publisher-refdata.subscription",
                 "Properties": {
                   "DeadLetteringOnMessageExpiration": false,
                   "DefaultMessageTimeToLive": "PT1H",
@@ -101,7 +101,7 @@
             },
             "Subscriptions": [
               {
-                "Name": "ttl-test_2",
+                "Name": "trade-gateway-publisher-ched.subscription",
                 "Properties": {
                   "DeadLetteringOnMessageExpiration": false,
                   "DefaultMessageTimeToLive": "PT1H",
